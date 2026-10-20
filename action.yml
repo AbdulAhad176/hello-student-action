@@ -1,0 +1,16 @@
+name: Student Greeting Action
+description: Greet a student and return a message
+
+inputs:
+  student-name:
+    description: Name of the student
+    required: true
+    default: Student
+
+outputs:
+  greeting:
+    description: The generated greeting
+
+runs:
+  using: node24
+  main: dist/index.js
