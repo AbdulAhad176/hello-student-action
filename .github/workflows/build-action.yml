@@ -1,0 +1,55 @@
+name: Build Custom Action
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out action repository
+        uses: actions/checkout@v4
+
+      - name: Set up build environment
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      - name: Install toolkit and build dependencies
+        run: npm install
+
+      - name: Compile action using ncc
+        run: |
+          npm run build
+          test -s dist/index.js
+          echo "Compiled bundle exists: dist/index.js"
+
+      - name: Test compiled custom action
+        id: greeting
+        uses: ./
+        with:
+          student-name: Abdul Ahad
+
+      - name: Check action output
+        env:
+          GREETING: ${{ steps.greeting.outputs.greeting }}
+        run: |
+          printf '%s\n' "$GREETING"
+          test "$GREETING" = "Hello, Abdul Ahad! Your custom action works."
+
+      - name: Save compiled files to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist package-lock.json
+          if git diff --cached --quiet; then
+            echo "Compiled files are already up to date."
+          else
+            git commit -m "Build custom action distribution"
+            git push origin HEAD:main
+          fi
